@@ -1,0 +1,82 @@
+send_raw:
+  name: Send raw frame
+  description: >-
+    EXPERT: send an arbitrary 9-byte protocol frame (hex, e.g.
+    "7E0404010001FF00EF"). See duoCo-StripX-BLE-protocol.md.
+  target:
+    entity:
+      integration: duoco_stripx
+      domain: light
+  fields:
+    frame:
+      name: Frame
+      description: 9 bytes as hex, starting 7E and ending EF.
+      required: true
+      example: "7E0404010001FF00EF"
+      selector:
+        text:
+
+set_symphony_point:
+  name: Set pixel count (symphony point)
+  description: >-
+    EXPERT: set the addressable pixel count. Persists in the lamp's NVRAM.
+    Must equal the physical LED count (80 on MELK-OC21) — a smaller value
+    leaves the far end of the strip permanently dark until rewritten.
+  target:
+    entity:
+      integration: duoco_stripx
+      domain: light
+  fields:
+    count:
+      name: Pixel count
+      description: Physical number of addressable LEDs (MELK-OC21 = 80).
+      required: true
+      example: 80
+      selector:
+        number:
+          min: 1
+          max: 1024
+          mode: box
+
+set_pin_sequence:
+  name: Set RGB pin sequence
+  description: >-
+    EXPERT — RE-WIRING ONLY: remap the RGB channel wire order. Persists in the
+    lamp's NVRAM; the lamp ships correctly configured. WARNING - the phone
+    app's "default" 0x010203 (b2=1, b1=2, b0=3) actually swaps red and green
+    on MELK-OC21, whose correct value is b2=2, b1=1, b0=3.
+  target:
+    entity:
+      integration: duoco_stripx
+      domain: light
+  fields:
+    b2:
+      name: Byte 2
+      description: First order byte (frame position [3]).
+      required: true
+      example: 2
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+    b1:
+      name: Byte 1
+      description: Second order byte (frame position [4]).
+      required: true
+      example: 1
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+    b0:
+      name: Byte 0
+      description: Third order byte (frame position [5]).
+      required: true
+      example: 3
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box

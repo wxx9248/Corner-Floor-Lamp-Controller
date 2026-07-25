@@ -1,0 +1,25 @@
+{
+  "domain": "duoco_stripx",
+  "name": "duoCo StripX",
+  "bluetooth": [
+    {
+      "local_name": "MELK-*",
+      "connectable": true
+    },
+    {
+      "service_uuid": "0000fff0-0000-1000-8000-00805f9b34fb",
+      "connectable": true
+    }
+  ],
+  "codeowners": ["@wxx9248"],
+  "config_flow": true,
+  "dependencies": ["bluetooth_adapters"],
+  "documentation": "https://github.com/wxx9248/Corner-Floor-Lamp-Controller",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/wxx9248/Corner-Floor-Lamp-Controller/issues",
+  "requirements": [
+    "duoco-stripx @ https://github.com/wxx9248/Corner-Floor-Lamp-Controller/releases/download/v0.1.0/duoco_stripx-0.1.0-py3-none-any.whl"
+  ],
+  "version": "0.1.0"
+}

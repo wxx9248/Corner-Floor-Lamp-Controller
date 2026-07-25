@@ -1,0 +1,36 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "bluetooth_confirm": {
+        "title": "Add duoCo StripX lamp",
+        "description": "Set up {name}?\n\nNote: the lamp accepts a single Bluetooth connection — once Home Assistant controls it, the duoCo StripX phone app can no longer connect."
+      },
+      "user": {
+        "title": "Add duoCo StripX lamp",
+        "description": "Pick a discovered lamp.",
+        "data": {
+          "address": "Device"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Device is already configured",
+      "already_in_progress": "Configuration flow is already in progress",
+      "no_devices_found": "No MELK- lamps found. Bring the lamp in range and close the phone app (the lamp only accepts one connection)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "duoCo StripX options",
+        "data": {
+          "udp_port": "Music-streaming UDP port"
+        },
+        "data_description": {
+          "udp_port": "Port the integration listens on for music-amplitude packets while the Music streaming switch is on."
+        }
+      }
+    }
+  }
+}
