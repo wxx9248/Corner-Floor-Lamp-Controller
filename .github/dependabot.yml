@@ -6,6 +6,14 @@ updates:
       interval: "daily"
     commit-message:
       prefix: "Dependency Updates"
+    ignore:
+      # bleak / bleak-retry-connector are the shared BLE stack versions Home
+      # Assistant itself pins; a bump that HA hasn't caught up to yet breaks
+      # installs in real HA environments in ways this repo's CI can't detect
+      # (v0.1.0 shipped requiring bleak-retry-connector>=4.6.3 while HA still
+      # pinned 4.6.1). Bump these manually after checking HA's current pins.
+      - dependency-name: "bleak"
+      - dependency-name: "bleak-retry-connector"
 
   - package-ecosystem: "github-actions"
     directory: "/"
