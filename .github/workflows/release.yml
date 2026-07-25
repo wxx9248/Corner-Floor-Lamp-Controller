@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Semver field to bump"
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag and publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # all tags — they are the version source of truth
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Compute new version from latest tag
+        id: version
+        run: |
+          latest="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n1)"
+          latest="${latest:-v0.0.0}"
+          ver="${latest#v}"
+          IFS=. read -r major minor patch <<< "$ver"
+          case "${{ github.event.inputs.bump }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          new="$major.$minor.$patch"
+          echo "latest: $latest -> new: v$new"
+          echo "version=$new" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp version into workspace
+        run: python3 scripts/set_version.py "${{ steps.version.outputs.version }}"
+
+      - name: Library tests (release gate)
+        working-directory: library
+        run: |
+          uv sync --python 3.14 --extra dev
+          uv run pytest
+
+      - name: Build wheel
+        run: uv build --wheel library -o dist
+
+      - name: Build component zip
+        run: |
+          v="${{ steps.version.outputs.version }}"
+          cd home-assistant/custom_components
+          zip -r "$GITHUB_WORKSPACE/dist/duoco_stripx-component-$v.zip" duoco_stripx \
+            -x "*__pycache__*" -x "*.DS_Store"
+
+      - name: Push tag
+        run: |
+          v="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v$v" "$GITHUB_SHA"
+          git push origin "v$v"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${{ steps.version.outputs.version }}"
+          gh release create "v$v" \
+            --title "v$v" \
+            --generate-notes \
+            "dist/duoco_stripx-$v-py3-none-any.whl" \
+            "dist/duoco_stripx-component-$v.zip"

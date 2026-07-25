@@ -9,15 +9,29 @@ device-verified protocol spec (`protocol/duoCo-StripX-BLE-protocol.md`).
 
 ## Install
 
-1. Make the `duoco-stripx` library available to HA. `manifest.json`'s
-   `requirements` points at the wheel attached to this repo's GitHub release
-   (`uv build --wheel` in `library/`, uploaded with `gh release`); HA installs
-   it automatically. For local dev instead:
-   `pip install -e /path/to/library`.
-2. Copy `custom_components/duoco_stripx/` into your HA `config/custom_components/`.
-3. Restart Home Assistant.
-4. The lamp is auto-discovered (Settings → Devices — "duoCo StripX"); or add
+1. Download `duoco_stripx-component-<version>.zip` from the repo's **latest
+   GitHub release** and unzip it into your HA `config/custom_components/`
+   (creates `custom_components/duoco_stripx/`).
+2. Restart Home Assistant — it automatically pip-installs the matching
+   `duoco-stripx` wheel from the same release (the zip's `manifest.json`
+   points at it).
+3. The lamp is auto-discovered (Settings → Devices — "duoCo StripX"); or add
    it manually via *Add integration → duoCo StripX*.
+
+> Don't copy `custom_components/duoco_stripx/` from the repo working tree for
+> a real install: committed version fields are `0.0.0` placeholders and the
+> manifest points at a wheel that doesn't exist. Real versions are stamped by
+> the release workflow. For local dev, `pip install -e ./library` into HA's
+> environment and copy the component as-is.
+
+### Releasing a new version
+
+Versions live only in git tags (`vX.Y.Z`); the repo always commits `0.0.0`.
+GitHub → *Actions → Release → Run workflow* → pick `major`/`minor`/`patch`.
+The workflow bumps from the latest tag, runs the tests, stamps the version
+(`scripts/set_version.py`), builds the wheel + component zip, pushes the tag,
+and publishes the release. PRs and pushes only run the build-check CI — no
+releases.
 
 > ⚠️ The lamp accepts **one** BLE connection. While HA controls it, the phone
 > app cannot connect (and vice versa — close the app if discovery fails).

@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # weekly — catches new Home Assistant releases breaking us with no repo activity
+    - cron: "17 6 * * 1"
+
+jobs:
+  build:
+    name: Build check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install Python
+        run: uv python install 3.14
+
+      - name: Library tests
+        working-directory: library
+        run: |
+          uv sync --python 3.14 --extra dev
+          uv run pytest
+
+      - name: Build wheel
+        run: uv build --wheel library -o dist
+
+      - name: set_version.py dry run
+        run: |
+          python3 scripts/set_version.py 9.9.9
+          git diff --stat
+          uv build --wheel library -o dist-dryrun
+          test -f dist-dryrun/duoco_stripx-9.9.9-py3-none-any.whl
+          git checkout -- .
+
+      - name: Component JSON/YAML sanity
+        run: |
+          uv run --no-project --with pyyaml python - <<'EOF'
+          import json, pathlib, yaml
+
+          component = pathlib.Path("home-assistant/custom_components/duoco_stripx")
+          for f in [*component.rglob("*.json"), pathlib.Path("home-assistant/hacs.json")]:
+              json.loads(f.read_text())
+              print(f"json OK: {f}")
+          for f in component.rglob("*.yaml"):
+              yaml.safe_load(f.read_text())
+              print(f"yaml OK: {f}")
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel
+          path: dist/*.whl
+
+  ha-import:
+    name: HA import check (latest HA)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install latest Home Assistant
+        run: |
+          # newest Python HA supports; bump when HA raises its floor
+          uv venv -p 3.14 .venv
+          uv pip install -p .venv/bin/python homeassistant -e library
+
+      - name: Install HA bluetooth/usb component requirements
+        run: |
+          # the bluetooth stack isn't part of HA's core requirements; use the
+          # exact pins declared by the installed HA version's own manifests
+          reqs=$(.venv/bin/python - <<'EOF'
+          import json, pathlib, homeassistant.components as c
+          root = pathlib.Path(c.__file__).parent
+          for comp in ("bluetooth", "usb"):
+              for r in json.loads((root / comp / "manifest.json").read_text())["requirements"]:
+                  print(r)
+          EOF
+          )
+          echo "$reqs"
+          uv pip install -p .venv/bin/python $reqs aioesphomeapi
+
+      - name: Import component against HA
+        run: .venv/bin/python scripts/ha_import_check.py

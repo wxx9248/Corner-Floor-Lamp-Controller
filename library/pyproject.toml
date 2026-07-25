@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "duoco-stripx"
-version = "0.1.0"
+version = "0.0.0"
 description = "BLE control library for duoCo StripX (MELK-) LED strip/floor-lamp controllers"
 readme = "README.md"
 license = { text = "MIT" }

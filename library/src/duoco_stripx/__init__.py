@@ -26,7 +26,7 @@ from .effects import (
 )
 from .models import DuocoStripXState
 
-__version__ = "0.1.0"
+__version__ = "0.0.0"
 
 __all__ = [
     "ANIMATION_MODES",
