@@ -25,7 +25,7 @@ classifiers = [
 Homepage = "https://github.com/wxx9248/Corner-Floor-Lamp-Controller"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=9.1.1"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/duoco_stripx"]
