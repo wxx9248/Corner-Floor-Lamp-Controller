@@ -21,7 +21,8 @@ def test_spot_checks() -> None:
     assert ANIMATION_MODES[0] == "Auto Play"
     assert ANIMATION_MODES[193] == "7-Color Jump"
     assert SCENES[1] == "Sunrise"
-    assert SCENES[28] == "Warnning"  # verbatim app typo (arrays.xml)
+    assert SCENES[26] == "Valentine's Day"  # arrays.xml escapes this as \'
+    assert SCENES[28] == "Warning"  # arrays.xml has the vendor typo "Warnning"
 
 
 def test_reverse_maps_total() -> None:

@@ -251,9 +251,9 @@ SCENES: dict[int, str] = {
     23: 'Snow',
     24: 'Fire',
     25: 'Lightning',
-    26: "Valentine\\'s Day",
+    26: "Valentine's Day",
     27: 'Hallowmas',
-    28: 'Warnning',
+    28: 'Warning',
 }
 
 ANIMATION_NAME_TO_ID: dict[str, int] = {v: k for k, v in ANIMATION_MODES.items()}

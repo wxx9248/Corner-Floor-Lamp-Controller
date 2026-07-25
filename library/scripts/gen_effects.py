@@ -10,6 +10,9 @@ modes_group8 (+ _command) is the 28-entry Scenes list (sent via changeScene).
 
 Four animation names appear twice with different ids (app duplication in
 groups 6/7); those get an " (id)" suffix so the name->id map is total.
+
+NAME_FIXUPS corrects known typos in the vendor's own strings (verified against
+arrays.xml) so they don't need re-fixing by hand after every regeneration.
 """
 from __future__ import annotations
 
@@ -19,6 +22,10 @@ from collections import Counter
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent.parent / "src" / "duoco_stripx" / "effects.py"
+
+NAME_FIXUPS: dict[str, str] = {
+    "Warnning": "Warning",  # scene 28: vendor typo in arrays.xml
+}
 
 HEADER = '''"""Effect and scene ID tables for duoCo StripX.
 
@@ -34,11 +41,17 @@ from __future__ import annotations
 '''
 
 
+def _unescape_android_string(s: str) -> str:
+    """Undo Android string-resource backslash-escaping (e.g. \\' -> ')."""
+    return re.sub(r"\\(.)", r"\1", s)
+
+
 def parse_array(xml: str, name: str) -> list[str]:
     m = re.search(r'<array name="%s">(.*?)</array>' % re.escape(name), xml, re.S)
     if not m:
         raise SystemExit(f"array {name!r} not found")
-    return re.findall(r"<item>(.*?)</item>", m.group(1), re.S)
+    items = re.findall(r"<item>(.*?)</item>", m.group(1), re.S)
+    return [_unescape_android_string(i) for i in items]
 
 
 def main() -> None:
@@ -55,7 +68,7 @@ def main() -> None:
         for n, i in zip(names, ids):
             if i in animations:
                 raise SystemExit(f"duplicate mode id {i}")
-            animations[i] = n
+            animations[i] = NAME_FIXUPS.get(n, n)
 
     # Disambiguate duplicated names (same name, different ids).
     counts = Counter(animations.values())
@@ -65,7 +78,7 @@ def main() -> None:
 
     scene_names = parse_array(xml, "modes_group8")
     scene_ids = [int(x) for x in parse_array(xml, "modes_group8_command")]
-    scenes = dict(zip(scene_ids, scene_names))
+    scenes = {i: NAME_FIXUPS.get(n, n) for i, n in zip(scene_ids, scene_names)}
 
     assert len(animations) == 213, len(animations)
     assert len(scenes) == 28, len(scenes)
