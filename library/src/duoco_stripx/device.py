@@ -56,6 +56,10 @@ class DuocoStripXDevice:
         return self._ble_device.address
 
     @property
+    def is_connected(self) -> bool:
+        return self._client is not None and self._client.is_connected
+
+    @property
     def name(self) -> str:
         return self._ble_device.name or self._ble_device.address
 
