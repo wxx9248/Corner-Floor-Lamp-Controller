@@ -5,10 +5,10 @@ one BLE connection — so Home Assistant keeps the connection and proxies:
 an external audio pipeline sends tiny UDP packets here and they are forwarded
 as `[7]=0x20` music frames.
 
-Packet format (binary):
-  [0x41, amp]        amplitude 0-100 — scales the lamp's current color
-  [0x44, R, G, B]    direct color frame — forwarded as-is
-Anything else is ignored.
+The lamp does no audio processing of its own, so all of it — amplitude
+detection, color choice, brightness scaling — is the client's job. HA is a
+dumb relay: exactly 3 bytes, `[R, G, B]`, forwarded as-is. Anything else is
+ignored.
 
 Behavior:
 - forwarding is rate-limited (latest packet wins between BLE writes)
@@ -25,9 +25,6 @@ from collections.abc import Callable
 from duoco_stripx import DuocoStripXDevice
 
 _LOGGER = logging.getLogger(__name__)
-
-PACKET_AMPLITUDE = 0x41  # "A"
-PACKET_COLOR = 0x44  # "D"
 
 FORWARD_INTERVAL = 0.05  # min seconds between forwarded BLE frames
 WATCHDOG_TIMEOUT = 5.0  # seconds without packets before auto-disarm
@@ -101,14 +98,9 @@ class MusicStreamer(asyncio.DatagramProtocol):
     # ---- datagram protocol ----
 
     def datagram_received(self, data: bytes, _addr: tuple) -> None:
-        if len(data) == 2 and data[0] == PACKET_AMPLITUDE:
-            amp = min(data[1], 100)
-            base = self._device.state.rgb
-            self._pending = tuple(round(c * amp / 100) for c in base)
-        elif len(data) == 4 and data[0] == PACKET_COLOR:
-            self._pending = (data[1], data[2], data[3])
-        else:
+        if len(data) != 3:
             return
+        self._pending = (data[0], data[1], data[2])
         self._last_rx = time.monotonic()
 
     def error_received(self, exc: Exception) -> None:

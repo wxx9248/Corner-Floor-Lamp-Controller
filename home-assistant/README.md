@@ -62,13 +62,12 @@ the pixel count below the physical LED count (80 on MELK-OC21).
 
 ## Music streaming (lamp pulses to your audio)
 
-The lamp reacts to a ~10 Hz stream of color frames. HA owns the BLE
-connection, so it proxies: turn **on** `switch.<lamp>_music_streaming`, then
-have any audio pipeline send UDP packets to `<ha-host>:8737` (port
-configurable in the integration's options):
-
-- `[0x41, amplitude]` (2 bytes, amplitude 0–100) — scales the lamp's current color
-- `[0x44, R, G, B]` (4 bytes) — direct color
+The lamp does no audio processing of its own, so HA is a dumb relay: turn
+**on** `switch.<lamp>_music_streaming`, then have any audio pipeline send
+UDP packets to `<ha-host>:8737` (port configurable in the integration's
+options) — exactly 3 bytes, `[R, G, B]`, forwarded to the lamp as-is.
+Amplitude detection, color choice, and brightness scaling are entirely up
+to the sender.
 
 If packets stop for 5 s the integration auto-disarms and restores the
 previous light state.
