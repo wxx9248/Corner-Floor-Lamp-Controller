@@ -88,9 +88,9 @@ def single_color(pos: int) -> bytes:
 def mic_on(on: bool) -> bytes:
     """§6 mic on/off.
 
-    Device-confirmed quirks (spec §6.1): on=True alone does NOT engage
-    reactive mode — send an EQ frame (mic_eq) after it. on=False stops
-    reactivity but FREEZES the last waveform — re-assert a color/effect after.
+    Device-confirmed quirks (spec §6.1): engaging reactive mode needs an EQ
+    frame (mic_eq) sent after this. Disengaging freezes the last waveform —
+    re-assert a color/effect afterward to unfreeze it.
     """
     return _frame(0x04, 0x07, 1 if on else 0, 0xFF, 0xFF, 0xFF, 0x00)
 

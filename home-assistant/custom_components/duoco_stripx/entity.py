@@ -36,11 +36,10 @@ class DuocoStripXEntity(Entity):
 
     @property
     def available(self) -> bool:
-        # A live connection proves reachability on its own — the lamp only
-        # accepts one BLE connection at a time and stops advertising as
-        # connectable while we hold it, so advertisement presence alone goes
-        # stale (HA's 5-minute UNAVAILABLE_TRACK_SECONDS) on any connection
-        # that outlives it, even though the lamp is still fully controllable.
+        # A live connection proves reachability on its own: the lamp stops
+        # advertising while we hold it, so relying only on advertisement
+        # presence goes stale after 5 min (UNAVAILABLE_TRACK_SECONDS) even
+        # though it's still fully controllable.
         return self._device.is_connected or bluetooth.async_address_present(
             self.hass, self._address, connectable=True
         )

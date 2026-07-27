@@ -68,15 +68,3 @@ MIC_EQ_NAMES: dict[MicEqMode, str] = {
     MicEqMode.SPECTRUM_TWO: "Spectrum Two",
     MicEqMode.ROLLING_TWO: "Rolling Two",
 }
-
-# The app cycles the music-streaming color through this palette, one step per
-# frame (Utils.musicColors: R, G, B, Y, M, C, W).
-MUSIC_PALETTE: tuple[tuple[int, int, int], ...] = (
-    (255, 0, 0),
-    (0, 255, 0),
-    (0, 0, 255),
-    (255, 255, 0),
-    (255, 0, 255),
-    (0, 255, 255),
-    (255, 255, 255),
-)

@@ -5,7 +5,7 @@ Wraps a bleak BLEDevice with:
 - a write lock + minimum inter-frame gap (spec §3.3)
 - optimistic state tracking (the lamp is write-only) with change callbacks
 - the two device-confirmed mic quirks encapsulated (spec §6.1):
-  * mic on alone doesn't engage reactive mode — the EQ frame does
+  * the EQ frame is what engages reactive mode (mic-on alone isn't enough)
   * mic off freezes the last waveform — the previous look is re-asserted
 """
 from __future__ import annotations
@@ -22,7 +22,7 @@ from bleak.exc import BleakError
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
 from . import protocol
-from .const import MUSIC_PALETTE, WRITE_GAP, WRITE_UUID, MicEqMode
+from .const import WRITE_GAP, WRITE_UUID, MicEqMode
 from .models import DuocoStripXState
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +46,6 @@ class DuocoStripXDevice:
         self._disconnect_timer: asyncio.TimerHandle | None = None
         self._expected_disconnect = False
         self._callbacks: list[Callable[[DuocoStripXState], None]] = []
-        self._music_palette_index = 0
         self.state = DuocoStripXState()
 
     # ---- identity ----
@@ -233,24 +232,6 @@ class DuocoStripXDevice:
         streaming to un-freeze the lamp.
         """
         await self._write(protocol.music_amp(r, g, b), gap=0.0)
-
-    async def stream_music_amplitude(
-        self, amplitude: int, base_rgb: tuple[int, int, int] | None = None
-    ) -> None:
-        """Send one amplitude frame: base color scaled by amplitude 0-100.
-
-        With base_rgb=None, cycles the app's 7-color music palette one step
-        per frame. Unlike the app (whose HSV scaling clamps to full), this
-        scales smoothly.
-        """
-        amplitude = _clamp(amplitude, 0, 100)
-        if base_rgb is None:
-            base_rgb = MUSIC_PALETTE[self._music_palette_index]
-            self._music_palette_index = (self._music_palette_index + 1) % len(
-                MUSIC_PALETTE
-            )
-        r, g, b = (round(c * amplitude / 100) for c in base_rgb)
-        await self.stream_music_frame(r, g, b)
 
     # ---- state re-assertion ----
 

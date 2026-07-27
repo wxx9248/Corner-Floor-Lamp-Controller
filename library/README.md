@@ -48,8 +48,9 @@ The lamp pulses to a ~10 Hz stream of `[7]=0x20` color frames (a single frame
 does nothing). Loudness is encoded as color brightness; black = silence.
 
 ```python
-await lamp.stream_music_amplitude(amp, base_rgb=(255, 0, 255))  # ~every 100 ms
-# or base_rgb=None to cycle the app's 7-color palette
+amp = 80  # 0-100
+r, g, b = (round(c * amp / 100) for c in (255, 0, 255))
+await lamp.stream_music_frame(r, g, b)  # ~every 100 ms
 await lamp.restore_state()  # when done — un-freezes the lamp
 ```
 
