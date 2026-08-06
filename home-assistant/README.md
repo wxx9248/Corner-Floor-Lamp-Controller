@@ -75,7 +75,7 @@ previous light state.
 Reference pipeline (captures system audio on macOS/Linux):
 
 ```
-pip install sounddevice numpy
+pip install sounddevice numpy scipy
 python library/examples/music_streamer.py --host <ha-ip> --cycle
 ```
 
