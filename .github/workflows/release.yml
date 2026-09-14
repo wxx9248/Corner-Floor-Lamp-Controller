@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 0 # all tags — they are the version source of truth
 
-      - uses: astral-sh/setup-uv@v10.0.1
+      - uses: astral-sh/setup-uv@v10.1.0
 
       - name: Compute new version from latest tag
         id: version
