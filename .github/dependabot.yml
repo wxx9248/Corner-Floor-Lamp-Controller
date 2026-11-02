@@ -1,11 +1,16 @@
+# Weekly update pull requests, one per ecosystem for minor and patch updates;
+# major updates get their own. The cooldown skips releases younger than a day.
 version: 2
 updates:
-  - package-ecosystem: "uv"
-    directory: "/library"
+  - package-ecosystem: uv
+    directory: /library
     schedule:
-      interval: "daily"
-    commit-message:
-      prefix: "Dependency Updates"
+      interval: weekly
+    cooldown:
+      default-days: 1
+    groups:
+      uv:
+        update-types: [minor, patch]
     ignore:
       # bleak / bleak-retry-connector are the shared BLE stack versions Home
       # Assistant itself pins; a bump that HA hasn't caught up to yet breaks
@@ -15,9 +20,12 @@ updates:
       - dependency-name: "bleak"
       - dependency-name: "bleak-retry-connector"
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "daily"
-    commit-message:
-      prefix: "GitHub Actions Updates"
+      interval: weekly
+    cooldown:
+      default-days: 1
+    groups:
+      github-actions:
+        update-types: [minor, patch]
