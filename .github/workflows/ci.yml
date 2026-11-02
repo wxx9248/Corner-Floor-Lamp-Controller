@@ -8,6 +8,9 @@ on:
     # weekly — catches new Home Assistant releases breaking us with no repo activity
     - cron: "17 6 * * 1"
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build check
@@ -73,13 +76,23 @@ jobs:
       - name: Install HA bluetooth/usb component requirements
         run: |
           # the bluetooth stack isn't part of HA's core requirements; use the
-          # exact pins declared by the installed HA version's own manifests
+          # exact pins declared by the installed HA version's own manifests.
+          # Follow dependencies and after_dependencies transitively: HA imports
+          # across them (usb imports hassio, which needs aiohasupervisor).
           reqs=$(.venv/bin/python - <<'EOF'
           import json, pathlib, homeassistant.components as c
           root = pathlib.Path(c.__file__).parent
-          for comp in ("bluetooth", "usb"):
-              for r in json.loads((root / comp / "manifest.json").read_text())["requirements"]:
-                  print(r)
+          seen, todo, reqs = set(), ["bluetooth", "usb"], set()
+          while todo:
+              comp = todo.pop()
+              manifest = root / comp / "manifest.json"
+              if comp in seen or not manifest.exists():
+                  continue
+              seen.add(comp)
+              m = json.loads(manifest.read_text())
+              reqs.update(m.get("requirements", []))
+              todo += m.get("dependencies", []) + m.get("after_dependencies", [])
+          print("\n".join(sorted(reqs)))
           EOF
           )
           echo "$reqs"
